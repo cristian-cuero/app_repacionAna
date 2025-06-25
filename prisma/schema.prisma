@@ -1,0 +1,136 @@
+generator client {
+  provider = "prisma-client-js"
+  // Puedes quitar `output`, usa el default
+}
+
+datasource db {
+  provider = "postgresql" // 
+  url      = env("DATABASE_URL")
+}
+
+// Definición de modelos
+model User {
+  id             Int              @id @default(autoincrement())
+  username       String           @unique
+  email          String           @unique
+  nombre         String
+  apellido       String
+  password       String
+  estado         Boolean          @default(true)
+  imagen         String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  ordenes        ordenes[]
+  ordenrespuesta ordenrespuesta[]
+  mensajes       mensajes[]
+}
+
+model Empresas {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @unique
+  nit         String
+  responsable String?
+  cedula      String?
+  email       String?
+  logo        String?
+  eslogan     String?
+  estado      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ordenes {
+  id             Int              @id @default(autoincrement())
+  danoequipo     String
+  estadoequipo   String
+  enciende       Boolean          @default(true)
+  simcard        Boolean          @default(false)
+  memoria        Boolean          @default(false)
+  observaciones  String           @default("")
+  valor          Float            @default(0.00)
+  descuento      Float            @default(0.00)
+  abono          Float            @default(0.00)
+  fecha          DateTime         @default(now())
+  fechaentrega   DateTime?
+  estadoorden    String           @default("Pendiente")
+  userId         Int
+  user           User             @relation(fields: [userId], references: [id])
+  modeloequipo   String
+  nombreequipo   String
+  idcliente      Int
+  cliente        clientes         @relation(fields: [idcliente], references: [idpersona])
+  ordenrespuesta ordenrespuesta[]
+  pagos          pagos[]
+  mensajes       mensajes[]
+
+  //ignoe el totalaçç
+  total Float @ignore
+  saldo Float @ignore
+}
+
+model clientes {
+  idpersona Int        @id @default(autoincrement())
+  nombre    String
+  apellido  String
+  telefono  String?
+  email     String?
+  direccion String?
+  estado    Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  ordenes   ordenes[]
+  mensajes  mensajes[]
+}
+
+model ordenrespuesta {
+  id            Int      @id @default(autoincrement())
+  fecha         DateTime @default(now())
+  observaciones String   @default("")
+  cantidad      Int      @default(1)
+  costo         Float    @default(0.00)
+  valor         Float    @default(0.00)
+  userId        Int
+  user          User     @relation(fields: [userId], references: [id])
+  idorden       Int
+  orden         ordenes  @relation(fields: [idorden], references: [id])
+
+  valorTotal Float @ignore
+}
+
+model pagos {
+  id            Int      @id @default(autoincrement())
+  fecha         DateTime @default(now())
+  valor         Float    @default(0.00)
+  observaciones String   @default("")
+  estado        Boolean  @default(true)
+  idorden       Int
+  orden         ordenes  @relation(fields: [idorden], references: [id])
+  idcaja        Int
+  caja          caja     @relation(fields: [idcaja], references: [id])
+}
+
+model caja {
+  id          Int     @id @default(autoincrement())
+  nombre      String
+  prefijo     String
+  consecutivo Int     @default(1)
+  estado      Boolean @default(true)
+  pagos       pagos[]
+}
+
+model mensajes {
+  id         Int       @id @default(autoincrement())
+  fecha      DateTime  @default(now())
+  tipo       String
+  procesado  Boolean   @default(false)
+  fechaenvio DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  idusuario  Int
+  usuario    User      @relation(fields: [idusuario], references: [id])
+  idcliente  Int
+  cliente    clientes  @relation(fields: [idcliente], references: [idpersona])
+  idorden    Int?
+  orden      ordenes?  @relation(fields: [idorden], references: [id])
+  mensaje    String
+}
